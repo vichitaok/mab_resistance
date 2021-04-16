@@ -1,0 +1,71 @@
+---
+title: "Infections à *Mycobacterium abscessus* : épidémiologie et chimio-résistance"
+author: "Vichita Ok"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=FALSE, echo =TRUE, cache = FALSE, message = FALSE, warning = FALSE, cache.lazy = FALSE,
+                      fig.height = 3.5, fig.width = 10.5)
+```
+
+
+## *Mycobacterium abscessus*
+
+* Characteristics
+
+    + Rapid growing mycobacterium 
+    + Environmental contaminant  
+
+
+* Subspecies of M. abscessus
+
+    + *M. abscessus senso strictu*
+    + *M. massiliense*
+    + *M. bolletii*  
+
+
+* Pathogenicity
+
+    + Pulmonary disease ++
+    + Cutaneous disease
+    + Disseminated disease: rare (ID)  
+    
+* Chemoresistance
+
+    + Intrinsic resistance
+        - rifampicin
+        - tobramycin
+        - ethambutol
+        - fluoroquinolones  
+        
+    + Acquired resistance
+        - Macrolides (mutations *rrl*)
+        - Aminosides (mutations *rrs*)
+
+
+
+## Dataset construction
+
+* Public databanks
+
+    + NCBI
+      Genome list (*Mycobacteroides abscessus subsp. abscessus*): 14 complete genome (scaffolds <=2)  
+      [lien](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus)  
+      script to download the genomes
+      
+    + Articles
+        - [Li *et al.* Can Respir J.2020](https://www-ncbi-nlm-nih-gov.proxy.insermbiblio.inist.fr/pmc/articles/PMC7142343/) : 6 genomes
+          [PRJNA488058](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA488058/)
+        - Davidson *et al.* JCM.2014 : 11 genomes  
+          SRX641283 (NJH2), SRX641284 (NJH3), SRX641291 (NJH4), SRX641292 (NJH5), SRX641293 (NJH6), SRX641294 (NJH7), SRX641295 (NJH9), SRX339602 (NJH8), SRX641281 (NJH1), SRX641302 (NJH10), and SRX339603 (NJH11)
+        - [Guo *et al.* Infect Drug Resist. 2020](https://www-ncbi-nlm-nih-gov.proxy.insermbiblio.inist.fr/pmc/articles/PMC7326206/)
+  
+      
+|Antimicrobial Agents	|	R |	I |	S | 
+|---------------------|---|---|---|
+|Aminoglycosides |  |  |  |
+|Amikacin	| 4.1 |	30.9	| 63.9	|
+|Tobramycin	| 91.8	| 6.2	| 2.1	|
+
