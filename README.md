@@ -1,1 +1,1 @@
-# mab_resistance
+# Projet tutoré "*Mycobacterium abscessus* et résistance"
