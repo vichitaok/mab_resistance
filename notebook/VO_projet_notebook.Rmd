@@ -46,26 +46,57 @@ knitr::opts_chunk$set(eval=FALSE, echo =TRUE, cache = FALSE, message = FALSE, wa
 
 
 
-## Dataset construction
+## Construction jeu de données
 
-* Public databanks
+### Données publiques NCBI
 
-    + NCBI
-      Genome list (*Mycobacteroides abscessus subsp. abscessus*): 14 complete genome (scaffolds <=2)  
-      [lien](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus)  
-      script to download the genomes
-      
-    + Articles
-        - [Li *et al.* Can Respir J.2020](https://www-ncbi-nlm-nih-gov.proxy.insermbiblio.inist.fr/pmc/articles/PMC7142343/) : 6 genomes
-          [PRJNA488058](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA488058/)
-        - Davidson *et al.* JCM.2014 : 11 genomes  
-          SRX641283 (NJH2), SRX641284 (NJH3), SRX641291 (NJH4), SRX641292 (NJH5), SRX641293 (NJH6), SRX641294 (NJH7), SRX641295 (NJH9), SRX339602 (NJH8), SRX641281 (NJH1), SRX641302 (NJH10), and SRX339603 (NJH11)
-        - [Guo *et al.* Infect Drug Resist. 2020](https://www-ncbi-nlm-nih-gov.proxy.insermbiblio.inist.fr/pmc/articles/PMC7326206/)
-  
-      
-|Antimicrobial Agents	|	R |	I |	S | 
-|---------------------|---|---|---|
-|Aminoglycosides |  |  |  |
-|Amikacin	| 4.1 |	30.9	| 63.9	|
-|Tobramycin	| 91.8	| 6.2	| 2.1	|
+Genome list (*Mycobacteroides abscessus subsp. abscessus*): 939 genomes
+[lien](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus)  
+[script](https://github.com/vichitaok/mab_resistance/blob/main/scripts/ncbi_fna.sh)
+
+
+```{bash test telechargement genomes}
+#script testé sur 14 genomes "complete" : fonctionné
+qsub -cwd -V -S -N ncbi-genomes ncbi_fna.sh 1>output.log 2>err.log
+```
+
+
+
+```{bash telechargement genomes}
+qsub -cwd -V -S -N ncbi_abscessus_all -pe thread 8 -q long.q /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1>output.log 2>error.log
+#Unable to read script file because of error: error opening ncbi_abscessus_all: No such file or directory
+
+
+qsub -cwd -V -N ncbi_genomes -q long.q -S /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1>output.log 2>error.log
+#Unable to read script file because of error: no input read from stdin
+
+qsub -cwd -V -S -N ncbi_genomes -q long.q /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1>output.log 2>error.log
+#Unable to read script file because of error: error opening ncbi_genomes: No such file or directory
+
+cd /save_projet/mab_resistance/mab_resistance/scripts/
+qsub -cwd -V -S -N ncbi_genomes -q long.q ncbi_fna.sh 1>output.log 2>error.log
+#Unable to read script file because of error: error opening ncbi_genomes: No such file or directory
+
+
+```
+
+
+### Séquences *M. abscessus* hôpital
+sur serveur Migale
+
+```{bash}
+cd MAB_HOPITAL/DATA/
+```
+
+
+* Contrôle qualité
+
+```{bash fastqc}
+
+
+```
+
+
+
+
 

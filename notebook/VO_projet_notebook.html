@@ -166,7 +166,7 @@ pre code {
 
 <h1 class="title toc-ignore">Infections à <em>Mycobacterium abscessus</em> : épidémiologie et chimio-résistance</h1>
 <h4 class="author">Vichita Ok</h4>
-<h4 class="date">16 avril, 2021</h4>
+<h4 class="date">21 avril, 2021</h4>
 
 </div>
 
@@ -208,53 +208,38 @@ pre code {
 </ul></li>
 </ul>
 </div>
-<div id="dataset-construction" class="section level2">
-<h2>Dataset construction</h2>
+<div id="construction-jeu-de-données" class="section level2">
+<h2>Construction jeu de données</h2>
+<div id="données-publiques-ncbi" class="section level3">
+<h3>Données publiques NCBI</h3>
+<p>Genome list (<em>Mycobacteroides abscessus subsp. abscessus</em>): 939 genomes <a href="https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus">lien</a><br />
+<a href="https://github.com/vichitaok/mab_resistance/blob/main/scripts/ncbi_fna.sh">script</a></p>
+<pre class="bash"><code>#script testé sur 14 genomes &quot;complete&quot; : fonctionné
+qsub -cwd -V -S -N ncbi-genomes ncbi_fna.sh 1&gt;output.log 2&gt;err.log</code></pre>
+<pre class="bash"><code>qsub -cwd -V -S -N ncbi_abscessus_all -pe thread 8 -q long.q /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1&gt;output.log 2&gt;error.log
+#Unable to read script file because of error: error opening ncbi_abscessus_all: No such file or directory
+
+
+qsub -cwd -V -N ncbi_genomes -q long.q -S /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1&gt;output.log 2&gt;error.log
+#Unable to read script file because of error: no input read from stdin
+
+qsub -cwd -V -S -N ncbi_genomes -q long.q /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1&gt;output.log 2&gt;error.log
+#Unable to read script file because of error: error opening ncbi_genomes: No such file or directory
+
+cd /save_projet/mab_resistance/mab_resistance/scripts/
+qsub -cwd -V -S -N ncbi_genomes -q long.q ncbi_fna.sh 1&gt;output.log 2&gt;error.log
+#Unable to read script file because of error: error opening ncbi_genomes: No such file or directory
+</code></pre>
+</div>
+<div id="séquences-m.-abscessus-hôpital" class="section level3">
+<h3>Séquences <em>M. abscessus</em> hôpital</h3>
+<p>sur serveur Migale</p>
+<pre class="bash"><code>cd MAB_HOPITAL/DATA/</code></pre>
 <ul>
-<li><p>Public databanks</p>
-<ul>
-<li><p>NCBI Genome list (<em>Mycobacteroides abscessus subsp. abscessus</em>): 14 complete genome (scaffolds &lt;=2)<br />
-<a href="https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus">lien</a><br />
-script to download the genomes</p></li>
-<li><p>Articles</p>
-<ul>
-<li><a href="https://www-ncbi-nlm-nih-gov.proxy.insermbiblio.inist.fr/pmc/articles/PMC7142343/">Li <em>et al.</em> Can Respir J.2020</a> : 6 genomes <a href="https://www.ncbi.nlm.nih.gov/bioproject/PRJNA488058/">PRJNA488058</a></li>
-<li>Davidson <em>et al.</em> JCM.2014 : 11 genomes<br />
-SRX641283 (NJH2), SRX641284 (NJH3), SRX641291 (NJH4), SRX641292 (NJH5), SRX641293 (NJH6), SRX641294 (NJH7), SRX641295 (NJH9), SRX339602 (NJH8), SRX641281 (NJH1), SRX641302 (NJH10), and SRX339603 (NJH11)</li>
-<li><a href="https://www-ncbi-nlm-nih-gov.proxy.insermbiblio.inist.fr/pmc/articles/PMC7326206/">Guo <em>et al.</em> Infect Drug Resist. 2020</a></li>
-</ul></li>
-</ul></li>
+<li>Contrôle qualité</li>
 </ul>
-<table>
-<thead>
-<tr class="header">
-<th>Antimicrobial Agents</th>
-<th>R</th>
-<th>I</th>
-<th>S</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Aminoglycosides</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td>Amikacin</td>
-<td>4.1</td>
-<td>30.9</td>
-<td>63.9</td>
-</tr>
-<tr class="odd">
-<td>Tobramycin</td>
-<td>91.8</td>
-<td>6.2</td>
-<td>2.1</td>
-</tr>
-</tbody>
-</table>
+<pre class="bash"><code></code></pre>
+</div>
 </div>
 
 
