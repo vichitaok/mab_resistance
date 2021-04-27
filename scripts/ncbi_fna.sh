@@ -6,7 +6,7 @@
 #------------------------------------------------------------------------------
 
 # folder for the downloaded genomes
-mkdir -P /work_projet/mab_resistance/GENOMES_NCBI
+mkdir -p /work_projet/mab_resistance/GENOMES_NCBI
 
 # table exported from NCBI
 table=/work_projet/mab_resistance/tables/ncbi_abscessus_ssp_abscessus.csv
@@ -17,7 +17,7 @@ ftpR=$(cut -f 16 -d "," ${table} | grep -v '^#' | sed -r 's|(ftp://ftp.ncbi.nlm.
 # Download the genomes using the FTP URLs created
 for ftp in ${ftpR}
 do
-	wget ${ftp} -P /work_projet/mab_resistance/GENOMES_NCBI
+	wget ${ftp} -p /work_projet/mab_resistance/GENOMES_NCBI
 done
 
 
