@@ -12,6 +12,7 @@ set -u           # aborts the script if a variable’s value is unset
 
 # folder for the downloaded genomes
 mkdir -p /work_projet/mab_resistance/GENOMES_NCBI
+mkdir -p /work_projet/mab_resistance/log
 
 # table exported from NCBI
 table=/work_projet/mab_resistance/tables/ncbi_abscessus_ssp_abscessus.csv
