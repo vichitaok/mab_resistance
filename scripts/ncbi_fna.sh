@@ -8,13 +8,13 @@
 set -o errexit   # abort on nonzero exitstatus
 set -o nounset   # abort on unbound variable
 set -o pipefail  # don't hide errors within pipes
+set -u           # aborts the script if a variable’s value is unset
 
 # folder for the downloaded genomes
 mkdir -p /work_projet/mab_resistance/GENOMES_NCBI
 
 # table exported from NCBI
 table=/work_projet/mab_resistance/tables/ncbi_abscessus_ssp_abscessus.csv
-
 
 # Remove the "" in the .csv file
 #Collect and modify the FTP URLs of the table to point to the _genomic.fna.gz files (remove the first line (RefSeq FTP), separation in 2 blocks, then reconstruction with addition of the 2nd block)
