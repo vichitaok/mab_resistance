@@ -25,7 +25,7 @@ ftpR=$(sed 's/"//g' ${table} | cut -f 16 -d "," | grep -Ev 'RefSeq|^$' | sed -r 
 for ftp in ${ftpR}
 do
     echo ${ftp}
-    filename=$(cut -f 11 -d "/" ${ftp})
+    filename=$(cut -f 11 -d "/" ${ftpR})
     
     if [[ -e /work_projet/mab_resistance/GENOMES_NCBI_test/${filename} ]]; then
     echo "ERROR: Input file '${ftp}' already exists"
