@@ -24,12 +24,12 @@ ftpR=$(sed 's/"//g' ${table} | cut -f 16 -d "," | grep -Ev 'RefSeq|^$' | sed -r 
 # Download the genomes using the FTP URLs created
 for ftp in ${ftpR}
 do
-    echo ${ftp}
-    filename=$(cut -f 11 -d "/" ${ftp})
+    echo "${ftp}"
+    filename=$(echo ${ftp} | cut -f 11 -d "/")
     
-    if [[ -e /work_projet/mab_resistance/GENOMES_NCBI/${filename} ]]; then
-    echo "ERROR: Input file '${ftp}' already exists"
-    exit 1
+    if [[ -e /work_projet/mab_resistance/GENOMES_NCBI/${filename} ]]
+    then
+        echo "ERROR: Input file '${filename}' already exists"
     fi
     
 	wget ${ftp} -P /work_projet/mab_resistance/GENOMES_NCBI
