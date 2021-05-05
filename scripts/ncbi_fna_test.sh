@@ -29,7 +29,7 @@ do
     
     if [[ -e /work_projet/mab_resistance/GENOMES_NCBI_test/${filename} ]]
     then
-        echo "ERROR: Input file '${ftp}' already exists"
+        echo "ERROR: Input file '${filename}' already exists"
     fi
     
 	wget ${ftp} -P /work_projet/mab_resistance/GENOMES_NCBI_test
