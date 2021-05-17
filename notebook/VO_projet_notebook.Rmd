@@ -2,14 +2,24 @@
 title: "Infections à *Mycobacterium abscessus* : épidémiologie et chimio-résistance"
 author: "Vichita Ok"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: html_document
+output:
+    html_document:
+      self_contained: true
+      number_sections: false
+      code_folding: "hide"
+      toc: true
+      toc_depth: 3
+      toc_float: true
 ---
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(eval=FALSE, echo =TRUE, cache = FALSE, message = FALSE, warning = FALSE, cache.lazy = FALSE,
                       fig.height = 3.5, fig.width = 10.5)
 ```
 
+
+# Introduction
 
 ## *Mycobacterium abscessus*
 
@@ -45,53 +55,68 @@ knitr::opts_chunk$set(eval=FALSE, echo =TRUE, cache = FALSE, message = FALSE, wa
         - Aminosides (mutations *rrs*)
 
 
+# Analyse
 
-## Construction jeu de données
+## Construction du jeu de données
 
 ### Données publiques NCBI
 
-Genome list (*Mycobacteroides abscessus subsp. abscessus*): 939 genomes
-[lien](https://www.ncbi.nlm.nih.gov/genome/browse#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus)  
-[script](https://github.com/vichitaok/mab_resistance/blob/main/scripts/ncbi_fna.sh)
+Genome [list](https://www.ncbi.nlm.nih.gov/genome/browse/#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus) (*Mycobacteroides abscessus subsp. abscessus*): 
 
+912 genomes (= 922 - 10 (pour lesquels aucun lien ftp)) ont été téléchargés à l'aide d'un [script](https://github.com/vichitaok/projet_tutore/blob/main/scripts/ncbi_fna.sh).
 
+Le script a été testé sur 14 génomes et a bien fonctionné.
 ```{bash test telechargement genomes}
 #script testé sur 14 genomes "complete" : fonctionné
 qsub -cwd -V -S -N ncbi-genomes ncbi_fna.sh 1>output.log 2>err.log
 ```
 
 
+Le script doit être modifié pour le téléchargement des 912 génomes :
+- présence de côtes "" dans le tableau
 
 ```{bash telechargement genomes}
-qsub -cwd -V -S -N ncbi_abscessus_all -pe thread 8 -q long.q /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1>output.log 2>error.log
-#Unable to read script file because of error: error opening ncbi_abscessus_all: No such file or directory
+# soumission du script pour telecharger les genomes
+qsub -cwd -V -N ncbi_genomes -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q /save_projet/mab_resistance/projet_tutore/scripts/ncbi_fna.sh
 
-
-qsub -cwd -V -N ncbi_genomes -q long.q -S /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1>output.log 2>error.log
-#Unable to read script file because of error: no input read from stdin
-
-qsub -cwd -V -S -N ncbi_genomes -q long.q /save_projet/mab_resistance/mab_resistance/scripts/ncbi_fna.sh 1>output.log 2>error.log
-#Unable to read script file because of error: error opening ncbi_genomes: No such file or directory
-
-cd /save_projet/mab_resistance/mab_resistance/scripts/
-qsub -cwd -V -S -N ncbi_genomes -q long.q ncbi_fna.sh 1>output.log 2>error.log
-#Unable to read script file because of error: error opening ncbi_genomes: No such file or directory
-
+# extraction des fichiers .fna.gz
+qsub -cwd -V -N extract -b y "gunzip /work_projet/mab_resistance/GENOMES_NCBI/*.fna.gz"
 
 ```
+
+Génomique comparative sur les 912 génomes téléchargés avec dRep.
+
+```{bash dRep comparaison genomes ncbi}
+qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y "conda activate drep-3.2.0 && dRep compare /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna && conda deactivate"
+
+```
+
 
 
 ### Séquences *M. abscessus* hôpital
-sur serveur Migale
 
-```{bash}
-cd MAB_HOPITAL/DATA/
-```
+* 81 séquences obtenues à partir de 81 souches isolées de prélèvements biologiques.
+  
+  - paired-end reads (2 x 150 pb)
+  - Nextera XT DNA Library Preparation Kit / MiniSeq (300-cycles)  
+  
+  
 
+* Contrôle qualité :
 
-* Contrôle qualité
+  [rapport MultiQC](https://vichitaok.github.io/projet_tutore/reports/mab_hopital/multiqc_report.html)
 
 ```{bash fastqc}
+#creation repertoires
+for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename $f .fastq.gz`/1-QC/fastqc/ ; done
+
+#fastqc
+for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do qsub -cwd -V -N fastqc-`basename ${f} .fastq.gz` -q short.q -pe thread 4 -o /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` -e /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` -b y "conda activate fastqc-0.11.8 && fastqc ${f} --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename ${f} .fastq.gz`/1-QC/fastqc/  && conda deactivate" ; done
+
+#multiqc
+mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/
+mkdir -p /work_projet/mab_resistance/log/global/
+qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y "conda activate multiqc-1.7 && multiqc -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ && conda deactivate"
 
 
 ```
