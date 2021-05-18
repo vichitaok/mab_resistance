@@ -98,30 +98,71 @@ qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_
 * 81 séquences obtenues à partir de 81 souches isolées de prélèvements biologiques.
   
   - paired-end reads (2 x 150 pb)
-  - Nextera XT DNA Library Preparation Kit / MiniSeq (300-cycles)  
+  - Nextera XT DNA Library Preparation Kit / MiniSeq (300-cycles) et MiSeq 
   
   
 
 * Contrôle qualité :
 
-  [rapport MultiQC](https://vichitaok.github.io/projet_tutore/reports/mab_hopital/multiqc_report.html)
+  [rapport MultiQC](https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_report.html)
 
 ```{bash fastqc}
 #creation repertoires
 for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename $f .fastq.gz`/1-QC/fastqc/ ; done
 
 #fastqc
-for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do qsub -cwd -V -N fastqc-`basename ${f} .fastq.gz` -q short.q -pe thread 4 -o /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` -e /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` -b y "conda activate fastqc-0.11.8 && fastqc ${f} --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename ${f} .fastq.gz`/1-QC/fastqc/  && conda deactivate" ; done
+for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do 
+  qsub -cwd -V -N fastqc-`basename ${f} .fastq.gz` 
+  -q short.q -pe thread 4 
+  -o /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` 
+  -e /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` 
+  -b y 
+  "conda activate fastqc-0.11.8 && fastqc ${f} 
+  --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename ${f} .fastq.gz`/1-QC/fastqc/  
+  && conda deactivate" ; 
+done
 
 #multiqc
 mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/
 mkdir -p /work_projet/mab_resistance/log/global/
-qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y "conda activate multiqc-1.7 && multiqc -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ && conda deactivate"
+qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y "conda activate multiqc-1.7 && multiqc -ip -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ && conda deactivate"
 
 
 ```
 
+* Nettoyage: outil fastp
+
+```{bash fastp}
+#liste des souches
+ls /work_projet/mab_resistance/DATA/MAB_HOPITAL/ | sed 's/_R[12].fastq.gz//g' | uniq > /work_projet/mab_resistance/tables/mab_hopital_liste.txt
+
+#fastp running
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do 
+qsub -cwd -V -N fastp-${id} 
+-pe thread 4 
+-o /work_projet/mab_resistance/log/${id} 
+-e /work_projet/mab_resistance/log/${id} 
+-b y 
+"conda activate fastp-0.20.0 && fastp 
+--in1 /work_projet/mab_resistance/DATA/MAB_HOPITAL/${id}_R1.fastq.gz 
+--in2 /work_projet/mab_resistance/DATA/MAB_HOPITAL/${id}_R1.fastq.gz 
+--out1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R1.cleaned_filtered.fastq.gz 
+--out2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R2.cleaned_filtered.fastq.gz 
+--html /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_fastp.html 
+--thread 4 
+--detect_adapter_for_pe 
+--cut_mean_quality 30 
+--cut_window_size 8 
+--length_required 100 
+--cut_tail 
+--json CLEANING/fastp.json && 
+conda deactivate" ; 
+done
+
+```
 
 
+* Contrôle qualité après nettoyage:
 
+  [rapport MultiQC après nettoyage](https://vichitaok.github.io/projet_tutore/results/mab_hopitalmultiqc_on_cleaned_report.html)
 
