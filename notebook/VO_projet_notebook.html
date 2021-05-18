@@ -254,7 +254,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Infections à <em>Mycobacterium abscessus</em> : épidémiologie et chimio-résistance</h1>
 <h4 class="author">Vichita Ok</h4>
-<h4 class="date">17 mai, 2021</h4>
+<h4 class="date">18 mai, 2021</h4>
 
 </div>
 
@@ -327,22 +327,64 @@ qsub -cwd -V -N extract -b y &quot;gunzip /work_projet/mab_resistance/GENOMES_NC
 <li><p>81 séquences obtenues à partir de 81 souches isolées de prélèvements biologiques.</p>
 <ul>
 <li>paired-end reads (2 x 150 pb)</li>
-<li>Nextera XT DNA Library Preparation Kit / MiniSeq (300-cycles)</li>
+<li>Nextera XT DNA Library Preparation Kit / MiniSeq (300-cycles) et MiSeq</li>
 </ul></li>
 <li><p>Contrôle qualité :</p>
-<p><a href="https://vichitaok.github.io/projet_tutore/reports/mab_hopital/multiqc_report.html">rapport MultiQC</a></p></li>
+<p><a href="https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_report.html">rapport MultiQC</a></p></li>
 </ul>
 <pre class="bash"><code>#creation repertoires
 for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename $f .fastq.gz`/1-QC/fastqc/ ; done
 
 #fastqc
-for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do qsub -cwd -V -N fastqc-`basename ${f} .fastq.gz` -q short.q -pe thread 4 -o /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` -e /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` -b y &quot;conda activate fastqc-0.11.8 &amp;&amp; fastqc ${f} --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename ${f} .fastq.gz`/1-QC/fastqc/  &amp;&amp; conda deactivate&quot; ; done
+for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do 
+  qsub -cwd -V -N fastqc-`basename ${f} .fastq.gz` 
+  -q short.q -pe thread 4 
+  -o /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` 
+  -e /work_projet/mab_resistance/log/`basename ${f} .fastq.gz` 
+  -b y 
+  &quot;conda activate fastqc-0.11.8 &amp;&amp; fastqc ${f} 
+  --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename ${f} .fastq.gz`/1-QC/fastqc/  
+  &amp;&amp; conda deactivate&quot; ; 
+done
 
 #multiqc
 mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/
 mkdir -p /work_projet/mab_resistance/log/global/
-qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate multiqc-1.7 &amp;&amp; multiqc -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ &amp;&amp; conda deactivate&quot;
+qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate multiqc-1.7 &amp;&amp; multiqc -ip -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ &amp;&amp; conda deactivate&quot;
 </code></pre>
+<ul>
+<li>Nettoyage: outil fastp</li>
+</ul>
+<pre class="bash"><code>#liste des souches
+ls /work_projet/mab_resistance/DATA/MAB_HOPITAL/ | sed &#39;s/_R[12].fastq.gz//g&#39; | uniq &gt; /work_projet/mab_resistance/tables/mab_hopital_liste.txt
+
+#fastp running
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do 
+qsub -cwd -V -N fastp-${id} 
+-pe thread 4 
+-o /work_projet/mab_resistance/log/${id} 
+-e /work_projet/mab_resistance/log/${id} 
+-b y 
+&quot;conda activate fastp-0.20.0 &amp;&amp; fastp 
+--in1 /work_projet/mab_resistance/DATA/MAB_HOPITAL/${id}_R1.fastq.gz 
+--in2 /work_projet/mab_resistance/DATA/MAB_HOPITAL/${id}_R1.fastq.gz 
+--out1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R1.cleaned_filtered.fastq.gz 
+--out2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R2.cleaned_filtered.fastq.gz 
+--html /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_fastp.html 
+--thread 4 
+--detect_adapter_for_pe 
+--cut_mean_quality 30 
+--cut_window_size 8 
+--length_required 100 
+--cut_tail 
+--json CLEANING/fastp.json &amp;&amp; 
+conda deactivate&quot; ; 
+done
+</code></pre>
+<ul>
+<li><p>Contrôle qualité après nettoyage:</p>
+<p><a href="https://vichitaok.github.io/projet_tutore/results/mab_hopitalmultiqc_on_cleaned_report.html">rapport MultiQC après nettoyage</a></p></li>
+</ul>
 </div>
 </div>
 </div>
