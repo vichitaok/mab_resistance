@@ -166,3 +166,13 @@ done
 
   [rapport MultiQC après nettoyage](https://vichitaok.github.io/projet_tutore/results/mab_hopitalmultiqc_on_cleaned_report.html)
 
+
+* Statistiques sur les données: 
+
+```{bash seqkit stats}
+qsub -cwd -V -N seqkit-stats -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y "conda activate seqkit-0.11.0 && seqkit stats /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/2-CLEANING/fastp/*.cleaned_filtered.fastq.gz > /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/seqkit_stats_on_cleaned.txt && conda deactivate"
+
+```
+
+
+
