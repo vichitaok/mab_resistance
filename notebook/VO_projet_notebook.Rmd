@@ -159,6 +159,11 @@ qsub -cwd -V -N fastp-${id}
 conda deactivate" ; 
 done
 
+
+#fastp en retirant les N bases
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do qsub -cwd -V -N fastp-${id} -pe thread 4 -o /work_projet/mab_resistance/log/${id} -e /work_projet/mab_resistance/log/${id} -b y "conda activate fastp-0.20.0 && fastp --in1 /work_projet/mab_resistance/DATA/MAB_HOPITAL/${id}_R1.fastq.gz --in2 /work_projet/mab_resistance/DATA/MAB_HOPITAL/${id}_R1.fastq.gz --out1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R1.cleaned_filtered.fastq.gz --out2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R2.cleaned_filtered.fastq.gz --html /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_fastp.html --thread 4 --detect_adapter_for_pe --cut_mean_quality 30 --cut_window_size 8 --length_required 100 --cut_tail --n_base_limit 5 --json CLEANING/fastp.json && conda deactivate" ; done
+
+
 ```
 
 
@@ -166,15 +171,22 @@ done
 
   [rapport MultiQC après nettoyage](https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_on_cleaned_report.html)
 
+```{bash}
+#fastqc post-trimming
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do qsub -cwd -V -N fastqc-cleaned-${id} -q short.q -pe thread 4 -o /work_projet/mab_resistance/log/${id}/ -e /work_projet/mab_resistance/log/${id}/ -b y "conda activate fastqc-0.11.8 && fastqc /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/*.fastq.gz --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/1-QC/fastqc/  && conda deactivate" ; done
 
-* Statistiques sur les données: 
 
-```{bash seqkit stats}
-qsub -cwd -V -N seqkit-stats -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y "conda activate seqkit-0.11.0 && seqkit stats /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/2-CLEANING/fastp/*.cleaned_filtered.fastq.gz > /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/seqkit_stats_on_cleaned.txt && conda deactivate"
+## multiqc global
+# répertoire pour résultat
+mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc-cleaned-fastp/
+
+# multiqc running
+qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y "conda activate multiqc-1.7 && multiqc -ip -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc-cleaned-fastp/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/2-CLEANING/fastp/ && conda deactivate"
 
 ```
 
 
+[rapport global](https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_on_cleaned_fastp_report.html)
 
 
 * Statistiques sur les données: 
