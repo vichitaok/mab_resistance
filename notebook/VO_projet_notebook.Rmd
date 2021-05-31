@@ -61,9 +61,14 @@ knitr::opts_chunk$set(eval= FALSE, echo =TRUE, cache = FALSE, message = FALSE, w
 
 ### Données publiques NCBI
 
-Genome [list](https://www.ncbi.nlm.nih.gov/genome/browse/#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus) (*Mycobacteroides abscessus subsp. abscessus*): 
+**Liste des génomes**
 
-912 genomes (= 922 - 10 (pour lesquels aucun lien ftp)) ont été téléchargés à l'aide d'un [script](https://github.com/vichitaok/projet_tutore/blob/main/scripts/ncbi_fna.sh).
+[liste](https://www.ncbi.nlm.nih.gov/genome/browse/#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus) (*Mycobacteroides abscessus subsp. abscessus*): 
+
+
+**Script pour le téléchargement des génomes**
+
+[script](https://github.com/vichitaok/projet_tutore/blob/main/scripts/ncbi_fna.sh).
 
 Le script a été testé sur 14 génomes et a bien fonctionné.
 ```{bash test telechargement genomes}
@@ -71,8 +76,9 @@ Le script a été testé sur 14 génomes et a bien fonctionné.
 qsub -cwd -V -S -N ncbi-genomes ncbi_fna.sh 1>output.log 2>err.log
 ```
 
+912 genomes (= 922 - 10 (pour lesquels aucun lien ftp)) ont été téléchargés à l'aide du [script](https://github.com/vichitaok/projet_tutore/blob/main/scripts/ncbi_fna.sh).
 
-Le script doit être modifié pour le téléchargement des 912 génomes :
+Le script a été modifié pour le téléchargement des 912 génomes :
 - présence de côtes "" dans le tableau
 
 ```{bash telechargement genomes}
@@ -84,12 +90,68 @@ qsub -cwd -V -N extract -b y "gunzip /work_projet/mab_resistance/GENOMES_NCBI/*.
 
 ```
 
-Génomique comparative sur les 912 génomes téléchargés avec dRep.
+**Génomique comparative** 
+
+sur les 912 génomes téléchargés avec **dRep**.
 
 ```{bash dRep comparaison genomes ncbi}
 qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y "conda activate drep-3.2.0 && dRep compare /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna && conda deactivate"
 
 ```
+
+Le job a été interrompu car a dépassé les 5 jours de la queue long.
+Pour réduire le temps de calcul, ont été ajoutées les options :
+
+- `--greedy_secondary_clustering` : 
+Use a heuristic to avoid pair-wise comparisons when doing secondary clustering. Will be done with single linkage clustering. Only works for fastANI S_algorithm option at the moment ;
+- `--S_algorithm fastANI` : Kmer-based approach; very fast.
+
+```{bash dRep comparaison genomes ncbi greedy_secondary_clustering + fast_ANI}
+qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y "conda activate drep-3.2.0 && dRep dereplicate -d -pa 0.99 -sa 0.999 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna && conda deactivate"
+
+#$ New checkM db needs to be made
+```
+
+Mais erreur `New checkM db needs to be made`, malgré l'utilisation les 200 Go dispos sur `\tmp` du noeud long.
+checkM nécessite un espace considérable. 
+
+En parcourant les liens suivants:
+[https://drep.readthedocs.io/en/latest/advanced_use.html#troubleshooting-checkm](https://drep.readthedocs.io/en/latest/advanced_use.html#troubleshooting-checkm) et [https://github.com/MrOlm/drep/issues/45](https://github.com/MrOlm/drep/issues/45), 
+
+l'idée est de créer un nouveau répertoire `\tmp` dans le `/work_projet/mab_resistance/` pour lancer checkM séparément et passer les résultats obtenus à dRep.
+
+*checkM*
+
+- checkm `lineage_wf`
+- checkm `qa`
+
+```{bash checkM lineage_wf}
+qsub -cwd -V -N checkm -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y "conda activate drep-3.2.0 && checkm lineage_wf /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/prodigal/ /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/ -f /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir//results.tsv --tab_table -t 32 --pplacer_threads 32 -g -x faa --tmpdir /work_projet/mab_resistance/tmp/ && conda deactivate"
+
+```
+
+```{bash checkM qa}
+qsub -cwd -V -N checkm-qa -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y "conda activate drep-3.2.0 && checkm qa /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/lineage.ms /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/ -f /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/Chdb.tsv -t 32 --tab_table -o 2 --tmpdir /work_projet/mab_resistance/tmp/ && conda deactivate"
+```
+
+*dRep*
+
+- dRep avec option `--genomeInfo` 
+- sur le résultat de checkM (format .csv avec les colonnes `genome,completeness,contamination`)
+
+```{bash dRep}
+## obtenir un fichier .csv avec les colonnes genome,completeness,contamination à passer sur dRep
+cut -f 1,12,13 results.tsv | sed 's/Completeness/completeness/' | sed 's/Contamination/contamination/' | sed 's/Bin Id/genome/' | sed 's/\t/,/g' > genome_info.csv
+
+## dREp avec option --genomeInfo
+qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y "conda activate drep-3.2.0 && dRep dereplicate --debug --genomeInfo /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/genome_info.csv -pa 0.99 -sa 0.999 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna && conda deactivate"
+
+```
+
+**Résultats**
+
+[dRep](https://github.com/vichitaok/projet_tutore/tree/main/results/ncbi_genomes/drep/figures)
+
 
 
 
@@ -232,7 +294,7 @@ reads_stat <- reads_stat %>%
   mutate(depth = (as.numeric(num_seqs_num) * avg_len) / 2.5e6) # taille génome M.asbcessus ~ 5 Mbp
 
 # view (reads_stat)
-kable(head(reads_stat),
+kable(reads_stat,
       caption = "Seqkit stats reads M.abscessus")
 
 # summary
@@ -243,6 +305,23 @@ summary(reads_stat)
 
 
 ```
+
+* Assemblage : 
+
+```{bash unicycler}
+# Assembly
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/ ; done
+
+## Test sur un échantillon mab01
+qsub -cwd -V -N unicycler -pe thread 4  -o /work_projet/mab_resistance/log/mab01/ -e /work_projet/mab_resistance/log/mab01/ -b y "conda activate unicycler-0.4.8 && unicycler  --short1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/2-CLEANING/fastp/mab01_R1.cleaned_filtered.fastq.gz  --short2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/2-CLEANING/fastp/mab01_R2.cleaned_filtered.fastq.gz   --out /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/3-Assembly/ --threads 4 && conda deactivate" 
+
+
+```
+
+test assemblage unicycler sur mabO1
+81 contigs
+
+
 
 
 
