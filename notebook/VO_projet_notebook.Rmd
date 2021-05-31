@@ -152,7 +152,10 @@ qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_
 
 [dRep](https://github.com/vichitaok/projet_tutore/tree/main/results/ncbi_genomes/drep/figures)
 
-
+NB: l'organisme du génome GCF_000611915.1_Mycobacterium_fortuitum_Z58_genomic a été renommé de "*Mycolicibacterium fortuitum* Z58" en "*Mycobacteroides abscessus* subsp. *abscessus*" en août 2018. [(https://www.ncbi.nlm.nih.gov/assembly/GCF_000611915.1)](https://www.ncbi.nlm.nih.gov/assembly/GCF_000611915.1).  
+Ce qui explique   
+1°) sa présence dans la liste des génomes de *M. abscessus* dans la recherche sur NCBI ;  
+et 2°) la proximité de ce génome vis-à-vis des génomes de *M. abscessus* dans l'arbre.
 
 
 ### Séquences *M. abscessus* hôpital
@@ -279,12 +282,15 @@ kable(as.data.frame(c(required_cranLib)),
 
 
 ```{r calcul profondeurs, eval=TRUE}
+# nombre décimales
+options(digits=3)
 
+# load tableau résultats seqkit
 reads_stat <- read.table("/work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/seqkit_stats_on_cleaned.txt",
                          header = TRUE)
 
 # renommer les noms des reads (1ère colonne file)
-reads_stat$file <- str_sub(reads_stat$file, 73, 80)
+reads_stat$file <- str_sub(reads_stat$file, 73, 77)
 
 # transformer la colonne num_seqs (chr) en numeric pour calculs
 reads_stat$num_seqs_num <- as.numeric(str_replace_all(reads_stat$num_seqs, ",", ""))
@@ -293,23 +299,36 @@ reads_stat$num_seqs_num <- as.numeric(str_replace_all(reads_stat$num_seqs, ",", 
 reads_stat <- reads_stat %>%
   mutate(depth = (as.numeric(num_seqs_num) * avg_len) / 2.5e6) # taille génome M.asbcessus ~ 5 Mbp
 
-# view (reads_stat)
-kable(reads_stat,
+# supprimer 1 des 2 lignes de chaque échantillon
+reads_stat <- reads_stat %>%
+  unique()
+
+# noms des lignes = noms des échantillons
+reads_stat_depth <- reads_stat %>% 
+  remove_rownames %>% 
+  column_to_rownames(var = "file")
+
+# view (reads_stat_depth)
+kable(reads_stat_depth,
       caption = "Seqkit stats reads M.abscessus")
 
 # summary
-summary(reads_stat)
+summary(reads_stat_depth)
 ```
 
-```{r}
 
+La qualité des reads semble bonne glogalement. Avec un pourcentage en GC de **63-64 %**, cohérent avec l'espèce *M.abscessus*.  
 
-```
+A noter la longueur variable des reads, en fonction des échantillons ; évoquant un filtrage préalable sur les reads.
+
+Par ailleurs, les échantillons **mab06** et **mab52** présentent des tailles de fichiers, des longueurs de reads bien inférieures. La profondeur est de 18 et 17, respectivement. Ce qui rendra difficile l'assemblage *de novo*.
+
 
 * Assemblage : 
 
-```{bash unicycler}
-# Assembly
+- Spades (Unicycler)
+```{bash unicycler test}
+# création répertoire assembly
 for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/ ; done
 
 ## Test sur un échantillon mab01
@@ -318,8 +337,30 @@ qsub -cwd -V -N unicycler -pe thread 4  -o /work_projet/mab_resistance/log/mab01
 
 ```
 
-test assemblage unicycler sur mabO1
+- Qualité de l'assemblage: Quast
+```{bash quast}
+qsub -cwd -V -N quast -pe thread 4 -o /work_projet/mab_resistance/log/mab01/ -e /work_projet/mab_resistance/log/mab01/  -b y " conda activate  quast-5.0.2 && quast.py  -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/3-Assembly/quast_results/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/3-Assembly/mab01.fasta  && conda deactivate"
+```
+
+
+test assemblage unicycler sur mab01
 81 contigs
+
+* Unicycler sur l'ensemble des génomes
+```{bash unicycler}
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do qsub -cwd -V -N unicycler-${id} -pe thread 4  -o /work_projet/mab_resistance/log/${id}/ -e /work_projet/mab_resistance/log/${id}/ -b y "conda activate unicycler-0.4.8 && unicycler  --short1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R1.cleaned_filtered.fastq.gz  --short2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R2.cleaned_filtered.fastq.gz   --out /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/ --threads 4 && conda deactivate" ; done
+```
+
+* Quast sur l'ensemble des génomes, avec un génome de référence (celui de Mycobrowser)  
+
+je ne trouve pas le génome **GCF_001606295.1 (Mycobacteroides abscessus ASM160629v1 RefSeq)** dans la liste des génomes téléchargés.
+
+```{bash quast avec un genome de ref}
+qsub -cwd -V -N quast_atcc -pe thread 8  -o /work_projet/mab_resistance/log/global/  -e /work_projet/mab_resistance/log/global/  -b y " conda activate  quast-5.0.2 && quast.py -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/3-Assembly/quast_results/ -r /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_ATCC_19977_genome_v4.fasta /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/3-Assembly/*.fasta && conda deactivate"
+
+```
+
+
 
 
 
