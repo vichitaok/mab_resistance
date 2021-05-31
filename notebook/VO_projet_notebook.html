@@ -1581,7 +1581,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Infections à <em>Mycobacterium abscessus</em> : épidémiologie et chimio-résistance</h1>
 <h4 class="author">Vichita Ok</h4>
-<h4 class="date">19 mai, 2021</h4>
+<h4 class="date">31 mai, 2021</h4>
 
 </div>
 
@@ -1632,21 +1632,57 @@ div.tocify {
 <h2>Construction du jeu de données</h2>
 <div id="données-publiques-ncbi" class="section level3">
 <h3>Données publiques NCBI</h3>
-<p>Genome <a href="https://www.ncbi.nlm.nih.gov/genome/browse/#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus">list</a> (<em>Mycobacteroides abscessus subsp. abscessus</em>):</p>
-<p>912 genomes (= 922 - 10 (pour lesquels aucun lien ftp)) ont été téléchargés à l’aide d’un <a href="https://github.com/vichitaok/projet_tutore/blob/main/scripts/ncbi_fna.sh">script</a>.</p>
+<p><strong>Liste des génomes</strong></p>
+<p><a href="https://www.ncbi.nlm.nih.gov/genome/browse/#!/prokaryotes/mycobacterium%20abscessus%20subsp.%20abscessus">liste</a> (<em>Mycobacteroides abscessus subsp. abscessus</em>):</p>
+<p><strong>Script pour le téléchargement des génomes</strong></p>
+<p><a href="https://github.com/vichitaok/projet_tutore/blob/main/scripts/ncbi_fna.sh">script</a>.</p>
 <p>Le script a été testé sur 14 génomes et a bien fonctionné.</p>
 <pre class="bash"><code>#script testé sur 14 genomes &quot;complete&quot; : fonctionné
 qsub -cwd -V -S -N ncbi-genomes ncbi_fna.sh 1&gt;output.log 2&gt;err.log</code></pre>
-<p>Le script doit être modifié pour le téléchargement des 912 génomes : - présence de côtes &quot;&quot; dans le tableau</p>
+<p>912 genomes (= 922 - 10 (pour lesquels aucun lien ftp)) ont été téléchargés à l’aide du <a href="https://github.com/vichitaok/projet_tutore/blob/main/scripts/ncbi_fna.sh">script</a>.</p>
+<p>Le script a été modifié pour le téléchargement des 912 génomes : - présence de côtes &quot;&quot; dans le tableau</p>
 <pre class="bash"><code># soumission du script pour telecharger les genomes
 qsub -cwd -V -N ncbi_genomes -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q /save_projet/mab_resistance/projet_tutore/scripts/ncbi_fna.sh
 
 # extraction des fichiers .fna.gz
 qsub -cwd -V -N extract -b y &quot;gunzip /work_projet/mab_resistance/GENOMES_NCBI/*.fna.gz&quot;
 </code></pre>
-<p>Génomique comparative sur les 912 génomes téléchargés avec dRep.</p>
+<p><strong>Génomique comparative</strong></p>
+<p>sur les 912 génomes téléchargés avec <strong>dRep</strong>.</p>
 <pre class="bash"><code>qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna &amp;&amp; conda deactivate&quot;
 </code></pre>
+<p>Le job a été interrompu car a dépassé les 5 jours de la queue long. Pour réduire le temps de calcul, ont été ajoutées les options :</p>
+<ul>
+<li><code>--greedy_secondary_clustering</code> : Use a heuristic to avoid pair-wise comparisons when doing secondary clustering. Will be done with single linkage clustering. Only works for fastANI S_algorithm option at the moment ;</li>
+<li><code>--S_algorithm fastANI</code> : Kmer-based approach; very fast.</li>
+</ul>
+<pre class="bash"><code>qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep dereplicate -d -pa 0.99 -sa 0.999 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna &amp;&amp; conda deactivate&quot;
+
+#$ New checkM db needs to be made</code></pre>
+<p>Mais erreur <code>New checkM db needs to be made</code>, malgré l’utilisation les 200 Go dispos sur <code>\tmp</code> du noeud long. checkM nécessite un espace considérable.</p>
+<p>En parcourant les liens suivants: <a href="https://drep.readthedocs.io/en/latest/advanced_use.html#troubleshooting-checkm">https://drep.readthedocs.io/en/latest/advanced_use.html#troubleshooting-checkm</a> et <a href="https://github.com/MrOlm/drep/issues/45">https://github.com/MrOlm/drep/issues/45</a>,</p>
+<p>l’idée est de créer un nouveau répertoire <code>\tmp</code> dans le <code>/work_projet/mab_resistance/</code> pour lancer checkM séparément et passer les résultats obtenus à dRep.</p>
+<p><em>checkM</em></p>
+<ul>
+<li>checkm <code>lineage_wf</code></li>
+<li>checkm <code>qa</code></li>
+</ul>
+<pre class="bash"><code>qsub -cwd -V -N checkm -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; checkm lineage_wf /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/prodigal/ /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/ -f /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir//results.tsv --tab_table -t 32 --pplacer_threads 32 -g -x faa --tmpdir /work_projet/mab_resistance/tmp/ &amp;&amp; conda deactivate&quot;
+</code></pre>
+<pre class="bash"><code>qsub -cwd -V -N checkm-qa -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; checkm qa /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/lineage.ms /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/ -f /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/Chdb.tsv -t 32 --tab_table -o 2 --tmpdir /work_projet/mab_resistance/tmp/ &amp;&amp; conda deactivate&quot;</code></pre>
+<p><em>dRep</em></p>
+<ul>
+<li>dRep avec option <code>--genomeInfo</code></li>
+<li>sur le résultat de checkM (format .csv avec les colonnes <code>genome,completeness,contamination</code>)</li>
+</ul>
+<pre class="bash"><code>## obtenir un fichier .csv avec les colonnes genome,completeness,contamination à passer sur dRep
+cut -f 1,12,13 results.tsv | sed 's/Completeness/completeness/' | sed 's/Contamination/contamination/' | sed 's/Bin Id/genome/' | sed 's/\t/,/g' &gt; genome_info.csv
+
+## dREp avec option --genomeInfo
+qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep dereplicate --debug --genomeInfo /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi/data/checkM/checkM_outdir/genome_info.csv -pa 0.99 -sa 0.999 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna &amp;&amp; conda deactivate&quot;
+</code></pre>
+<p><strong>Résultats</strong></p>
+<p><a href="https://github.com/vichitaok/projet_tutore/tree/main/results/ncbi_genomes/drep/figures">dRep</a></p>
 </div>
 <div id="séquences-m.-abscessus-hôpital" class="section level3">
 <h3>Séquences <em>M. abscessus</em> hôpital</h3>
@@ -3767,6 +3803,16 @@ summary(reads_stat)</code></pre>
 ##  Mean   :1949232   Mean   :113.94  
 ##  3rd Qu.:2378403   3rd Qu.:139.18  
 ##  Max.   :4744429   Max.   :276.43</code></pre>
+<ul>
+<li>Assemblage :</li>
+</ul>
+<pre class="bash"><code># Assembly
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/ ; done
+
+## Test sur un échantillon mab01
+qsub -cwd -V -N unicycler -pe thread 4  -o /work_projet/mab_resistance/log/mab01/ -e /work_projet/mab_resistance/log/mab01/ -b y &quot;conda activate unicycler-0.4.8 &amp;&amp; unicycler  --short1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/2-CLEANING/fastp/mab01_R1.cleaned_filtered.fastq.gz  --short2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/2-CLEANING/fastp/mab01_R2.cleaned_filtered.fastq.gz   --out /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/3-Assembly/ --threads 4 &amp;&amp; conda deactivate&quot; 
+</code></pre>
+<p>test assemblage unicycler sur mabO1 81 contigs</p>
 </div>
 </div>
 </div>
