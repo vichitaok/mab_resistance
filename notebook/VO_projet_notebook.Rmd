@@ -317,7 +317,7 @@ summary(reads_stat_depth)
 ```
 
 
-La qualité des reads semble bonne glogalement. Avec un pourcentage en GC de **63-64 %**, cohérent avec l'espèce *M.abscessus*.  
+La qualité des reads semble bonne glogalement. Avec un pourcentage en GC de **64 %**, cohérent avec l'espèce *M.abscessus*.  
 
 A noter la longueur variable des reads, en fonction des échantillons ; évoquant un filtrage préalable sur les reads.
 
@@ -346,23 +346,61 @@ qsub -cwd -V -N quast -pe thread 4 -o /work_projet/mab_resistance/log/mab01/ -e 
 test assemblage unicycler sur mab01
 81 contigs
 
+
 * Unicycler sur l'ensemble des génomes
 ```{bash unicycler}
-for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do qsub -cwd -V -N unicycler-${id} -pe thread 4  -o /work_projet/mab_resistance/log/${id}/ -e /work_projet/mab_resistance/log/${id}/ -b y "conda activate unicycler-0.4.8 && unicycler  --short1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R1.cleaned_filtered.fastq.gz  --short2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R2.cleaned_filtered.fastq.gz   --out /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/ --threads 4 && conda deactivate" ; done
+# Running Unicycler
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do 
+qsub -cwd -V -N unicycler-${id} -pe thread 4  
+-o /work_projet/mab_resistance/log/${id}/ 
+-e /work_projet/mab_resistance/log/${id}/ 
+-b y "conda activate unicycler-0.4.8 && unicycler  
+--short1 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R1.cleaned_filtered.fastq.gz  
+--short2 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/2-CLEANING/fastp/${id}_R2.cleaned_filtered.fastq.gz   
+--out /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/ 
+--threads 4 
+&& conda deactivate" ; done
+
+# Renommer les final assemblies
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt`; do echo ${id} | mv /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/assembly.fasta /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/${id}.fasta ; done
+
+
 ```
 
-* Quast sur l'ensemble des génomes, avec un génome de référence (celui de Mycobrowser)  
+* Quast sur l'ensemble des génomes, avec un génome de référence (celui de Mycobrowser, *i.e.* *Mycobacterium abscessus* ATCC19977)  
 
-je ne trouve pas le génome **GCF_001606295.1 (Mycobacteroides abscessus ASM160629v1 RefSeq)** dans la liste des génomes téléchargés.
+NB: Les génome **GCF_001606295.1 (Mycobacteroides abscessus ASM160629v1 RefSeq)** et **Mycobacterium abscessus ATCC19977** ne figurent pas dans la liste des génomes téléchargés, qui ne comprennent que la sous-espèce *M.abscessus* subsp. *abscessus*.
+
+Par ailleurs, le génome de référence de Mycobrowser *Mycobacterium abscessus* ATCC19977 est un génome public de NCBI (NC_010397.1), lequel a été retiré par l'équipe RefSeq [(https://www.ncbi.nlm.nih.gov/nuccore/NC_010397.1?report=genbank)](https://www.ncbi.nlm.nih.gov/nuccore/NC_010397.1?report=genbank).
+Probablement en raison d'une redondance de génomes publiés, avec CU458896, auquel la même référence Pubmed est associée.  
+Ripoll F *et al*. Non mycobacterial virulence genes in the genome of the emerging pathogen *Mycobacterium abscessus*. POne 2009.
+
+En commentaire du Genbank, on observe en effet :
+
+```
+COMMENT     REVIEWED REFSEQ: This record has been curated by NCBI staff. The
+            reference sequence is identical to CU458896.
+```
+Ce génome ATCC19977 (CU458896, GCA_000069185) ne fait pas partie des génomes téléchargés car étiquetée *M.abscessus* et non sous-espèce *M.abscessus* subsp. *abscessus*.
 
 ```{bash quast avec un genome de ref}
-qsub -cwd -V -N quast_atcc -pe thread 8  -o /work_projet/mab_resistance/log/global/  -e /work_projet/mab_resistance/log/global/  -b y " conda activate  quast-5.0.2 && quast.py -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/3-Assembly/quast_results/ -r /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_ATCC_19977_genome_v4.fasta /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/3-Assembly/*.fasta && conda deactivate"
+
+mkdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/3-ASSEMBLY/
+
+qsub -cwd -V -N quast_global_atcc -pe thread 4  -o /work_projet/mab_resistance/log/global/  -e /work_projet/mab_resistance/log/global/  -b y "conda activate  quast-5.0.2 && quast.py -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/3-ASSEMBLY/quast_results/ -r /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_ATCC_19977_genome_v4.fasta /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/3-ASSEMBLY/*.fasta --threads 4 && conda deactivate"
+
+
+mkdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/multiqc-assembly
+
+qsub -cwd -V -N multiqc-assembly -pe thread 4 -o /work_projet/mab_resistance/log/global/  -e /work_projet/mab_resistance/log/global/ -b y "conda activate multiqc-1.7 && multiqc -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/multiqc-assembly/  /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/3-ASSEMBLY/quast_results/  && conda deactivate"
 
 ```
 
+Résultats :
+[Rapport MultiQC Assemblage](https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_assembly_report.html)
 
+Comme attendu, l'assemblage des reads des échantillons de *mab06* et *mab52* ne donne pas de résultats satistfaisants. Avec des N50 de 15.8 et 3.4 kbp, respectivement et des contigs de petite taille (max 67.9 kbp et 48.2 kbp).
 
-
-
+Par ailleurs, pour *mb02* : on observe des mismatchs avec missassemblies. 
 
 
