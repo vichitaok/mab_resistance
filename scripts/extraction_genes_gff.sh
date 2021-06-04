@@ -52,7 +52,7 @@ conda activate bedtools-2.29.0
 # Extraction genomic sequences
 for gene in `cat ${list}` ; do 
 	gene_gff=$(grep ${gene} ${gff}) 
-	bedtools getfasta -fi ${fasta} -bed ${gene.gff} > /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/${gene}.fasta
+	bedtools getfasta -fi ${fasta} -bed ${gene_gff} > /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/${gene}.fasta
 done
 
 
