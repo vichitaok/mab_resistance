@@ -1581,7 +1581,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Infections à <em>Mycobacterium abscessus</em> : épidémiologie et chimio-résistance</h1>
 <h4 class="author">Vichita Ok</h4>
-<h4 class="date">01 juin, 2021</h4>
+<h4 class="date">14 juin, 2021</h4>
 
 </div>
 
@@ -1647,7 +1647,10 @@ qsub -cwd -V -N ncbi_genomes -o /work_projet/mab_resistance/log/ -e /work_projet
 # extraction des fichiers .fna.gz
 qsub -cwd -V -N extract -b y &quot;gunzip /work_projet/mab_resistance/GENOMES_NCBI/*.fna.gz&quot;
 </code></pre>
-<p><strong>Génomique comparative</strong></p>
+</div>
+</div>
+<div id="génomique-comparative-sur-les-génomes-téléchargés" class="section level2">
+<h2>Génomique comparative sur les génomes téléchargés</h2>
 <p>sur les 912 génomes téléchargés avec <strong>dRep</strong>.</p>
 <pre class="bash"><code>qsub -cwd -V -N drep -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare /work_projet/mab_resistance/ANALYSIS/DREP_genomes_ncbi -g /work_projet/mab_resistance/DATA/GENOMES_NCBI/*.fna &amp;&amp; conda deactivate&quot;
 </code></pre>
@@ -1688,17 +1691,18 @@ Ce qui explique<br />
 1°) sa présence dans la liste des génomes de <em>M. abscessus</em> dans la recherche sur NCBI ;<br />
 et 2°) la proximité de ce génome vis-à-vis des génomes de <em>M. abscessus</em> dans l’arbre.</p>
 </div>
-<div id="séquences-m.-abscessus-hôpital" class="section level3">
-<h3>Séquences <em>M. abscessus</em> hôpital</h3>
+<div id="séquences-m.-abscessus-hôpital" class="section level2">
+<h2>Séquences <em>M. abscessus</em> hôpital</h2>
 <ul>
 <li><p>81 séquences obtenues à partir de 81 souches isolées de prélèvements biologiques.</p>
 <ul>
 <li>paired-end reads (2 x 150 pb)</li>
 <li>Nextera XT DNA Library Preparation Kit / MiniSeq (300-cycles) et MiSeq</li>
 </ul></li>
-<li><p>Contrôle qualité :</p>
-<p><a href="https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_report.html">rapport MultiQC</a></p></li>
 </ul>
+<div id="contrôle-qualité" class="section level3">
+<h3>Contrôle qualité :</h3>
+<p><a href="https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_report.html">rapport MultiQC</a></p>
 <pre class="bash"><code>#creation repertoires
 for f in /work_projet/mab_resistance/DATA/MAB_HOPITAL/*.fastq.gz ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/`basename $f .fastq.gz`/1-QC/fastqc/ ; done
 
@@ -1719,9 +1723,9 @@ mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/
 mkdir -p /work_projet/mab_resistance/log/global/
 qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate multiqc-1.7 &amp;&amp; multiqc -ip -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ &amp;&amp; conda deactivate&quot;
 </code></pre>
-<ul>
-<li>Nettoyage: outil fastp</li>
-</ul>
+</div>
+<div id="nettoyage-outil-fastp" class="section level3">
+<h3>Nettoyage: outil fastp</h3>
 <pre class="bash"><code>#liste des souches
 ls /work_projet/mab_resistance/DATA/MAB_HOPITAL/ | sed 's/_R[12].fastq.gz//g' | uniq &gt; /work_projet/mab_resistance/tables/mab_hopital_liste.txt
 
@@ -1768,9 +1772,9 @@ mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc-cl
 qsub -cwd -V -N multiqc -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate multiqc-1.7 &amp;&amp; multiqc -ip -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/1-QC/multiqc-cleaned-fastp/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/1-QC/fastqc/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/2-CLEANING/fastp/ &amp;&amp; conda deactivate&quot;
 </code></pre>
 <p><a href="https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_on_cleaned_fastp_report.html">rapport global</a></p>
-<ul>
-<li>Statistiques sur les données:</li>
-</ul>
+</div>
+<div id="statistiques-sur-les-données" class="section level3">
+<h3>Statistiques sur les données:</h3>
 <pre class="bash"><code>qsub -cwd -V -N seqkit-stats -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate seqkit-0.11.0 &amp;&amp; seqkit stats /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/2-CLEANING/fastp/*.cleaned_filtered.fastq.gz &gt; /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/seqkit_stats_on_cleaned.txt &amp;&amp; conda deactivate&quot;
 </code></pre>
 <pre class="r"><code>#### Required libraries ####
@@ -2844,10 +2848,16 @@ summary(reads_stat_depth)</code></pre>
 <p>La qualité des reads semble bonne glogalement. Avec un pourcentage en GC de <strong>64 %</strong>, cohérent avec l’espèce <em>M.abscessus</em>.</p>
 <p>A noter la longueur variable des reads, en fonction des échantillons ; évoquant un filtrage préalable sur les reads.</p>
 <p>Par ailleurs, les échantillons <strong>mab06</strong> et <strong>mab52</strong> présentent des tailles de fichiers, des longueurs de reads bien inférieures. La profondeur est de 18 et 17, respectivement. Ce qui rendra difficile l’assemblage <em>de novo</em>.</p>
-<ul>
-<li><p>Assemblage :</p></li>
-<li><p>Spades (Unicycler)</p></li>
-</ul>
+<p>*Verification contamination mab06 et mab52</p>
+<pre class="bash"><code>qsub -cwd -V -N drep-mab-hopital-097 -pe thread 32 -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep dereplicate -d -pa 0.97 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/DREP_mab_hopital_pa_0.97 --genomes /work_projet/mab_resistance/tables/path_mab_hopital.txt &amp;&amp; conda deactivate&quot;
+
+ qsub -cwd -V -N drep-all-genomes-097 -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare --debug -pa 0.97 -p 32 --S_algorithm fastANI /work_projet/mab_resistance/ANALYSIS/DREP_all_genomes_pa_0.97 --genomes /work_projet/mab_resistance/tables/path_to_all_genomes.txt &amp;&amp; conda deactivate&quot;
+</code></pre>
+<p>mab06 : contamination 0 mab52 : contamination 0.46</p>
+</div>
+<div id="assemblage" class="section level3">
+<h3>Assemblage :</h3>
+<p>test assemblage unicycler sur mab01 81 contigs - Spades (Unicycler)</p>
 <pre class="bash"><code># création répertoire assembly
 for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do mkdir -p /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/ ; done
 
@@ -2858,7 +2868,6 @@ qsub -cwd -V -N unicycler -pe thread 4  -o /work_projet/mab_resistance/log/mab01
 <li>Qualité de l’assemblage: Quast</li>
 </ul>
 <pre class="bash"><code>qsub -cwd -V -N quast -pe thread 4 -o /work_projet/mab_resistance/log/mab01/ -e /work_projet/mab_resistance/log/mab01/  -b y &quot; conda activate  quast-5.0.2 &amp;&amp; quast.py  -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/3-Assembly/quast_results/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/3-Assembly/mab01.fasta  &amp;&amp; conda deactivate&quot;</code></pre>
-<p>test assemblage unicycler sur mab01 81 contigs</p>
 <ul>
 <li>Unicycler sur l’ensemble des génomes</li>
 </ul>
@@ -2898,10 +2907,241 @@ mkdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/multiqc-assembly
 qsub -cwd -V -N multiqc-assembly -pe thread 4 -o /work_projet/mab_resistance/log/global/  -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate multiqc-1.7 &amp;&amp; multiqc -o /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/multiqc-assembly/  /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/3-ASSEMBLY/quast_results/  &amp;&amp; conda deactivate&quot;
 </code></pre>
 <p>Résultats : <a href="https://vichitaok.github.io/projet_tutore/results/mab_hopital/multiqc_assembly_report.html">Rapport MultiQC Assemblage</a></p>
-<p>Comme attendu, l’assemblage des reads des échantillons de <em>mab06</em> et <em>mab52</em> ne donne pas de résultats satistfaisants. Avec des N50 de 15.8 et 3.4 kbp, respectivement et des contigs de petite taille (max 67.9 kbp et 48.2 kbp).</p>
+<p>Comme attendu, l’assemblage des reads des échantillons de <em>mab06</em> et <em>mab52</em> ne donne pas de résultats satisfaisants. Avec des N50 de 15.8 et 3.4 kbp, respectivement et des contigs de petite taille (max 67.9 kbp et 48.2 kbp).</p>
 <p>Par ailleurs, pour <em>mb02</em> : on observe des mismatchs avec missassemblies.</p>
+<pre class="bash"><code>mkdir /work_projet/mab_resistance/ANALYSIS/DREP_all_genomes
+
+qsub -cwd -V -N drep-all-genomes -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare --debug -pa 0.99 -sa 0.999 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/DREP_all_genomes --genomes /work_projet/mab_resistance/tables/path_to_genomes.txt &amp;&amp; conda deactivate&quot;
+$ error : ne trouve pas les inputs</code></pre>
+<p>mais liste à refaire (chemins complets)</p>
+<pre class="bash"><code>cd /work_projet/mab_resistance/DATA/GENOMES_NCBI/
+ls -d $PWD/* &gt; /work_projet/mab_resistance/tables/path_to_genomes.txt
+
+echo /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_ATCC_19977_genome_v4.fasta &gt;&gt; /work_projet/mab_resistance/tables/path_to_genomes.txt
+
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt`; do echo /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/${id}.fasta &gt;&gt; /work_projet/mab_resistance/tables/path_to_genomes.txt ; done
+
+# contrôle nombre de lignes 
+[vok@migale GENOMES_NCBI]$ cat /work_projet/mab_resistance/tables/path_to_genomes.txt | wc -l
+994
+
+
+
+# running dRep
+qsub -cwd -V -N drep-all-genomes -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare --debug -pa 0.99 -sa 0.999 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/DREP_all_genomes --genomes /work_projet/mab_resistance/tables/path_to_genomes.txt &amp;&amp; conda deactivate&quot;
+
+# running dRep pa 0.97 greedy_secondary
+qsub -cwd -V -N drep-all-genomes-097 -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare --debug -pa 0.97 -p 32 --S_algorithm fastANI --greedy_secondary_clustering /work_projet/mab_resistance/ANALYSIS/DREP_all_genomes_pa_0.97 --genomes /work_projet/mab_resistance/tables/path_to_genomes.txt &amp;&amp; conda deactivate&quot;
+
+# running dRep pa 0.97
+qsub -cwd -V -N drep-all-genomes-097 -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare --debug -pa 0.97 -p 32 --S_algorithm fastANI /work_projet/mab_resistance/ANALYSIS/DREP_all_genomes_pa_0.97 --genomes /work_projet/mab_resistance/tables/path_to_genomes.txt &amp;&amp; conda deactivate&quot;
+
+# changement nom du répertoire en DREP_all_genomes_1atcc_pa_0.97</code></pre>
+<pre class="bash"><code># ajout de 2 genomes &quot;de référence&quot;, le NZ_CP014955.1 et le CU458896.1
+cd /work_projet/mab_resistance/DATA/GENOMES_NCBI/
+ls -d $PWD/* &gt; /work_projet/mab_resistance/tables/path_to_all_genomes.txt
+
+echo /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_ATCC_19977_genome_v4.fasta &gt;&gt; /work_projet/mab_resistance/tables/path_to_all_genomes.txt
+
+echo /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_atcc_19977_CU458896-1_genome.fasta &gt;&gt; /work_projet/mab_resistance/tables/path_to_all_genomes.txt
+echo /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_NZ_CP014955-1_genome.fasta &gt;&gt; /work_projet/mab_resistance/tables/path_to_all_genomes.txt
+
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt`; do echo /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/${id}.fasta &gt;&gt; /work_projet/mab_resistance/tables/path_to_all_genomes.txt ; done
+
+
+# contrôle nombre de lignes 
+[vok@migale GENOMES_NCBI]$ cat /work_projet/mab_resistance/tables/path_to_all_genomes.txt | wc -l
+996
+
+
+
+# running dRep pa 0.97
+qsub -cwd -V -N drep-all-genomes-097 -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare --debug -pa 0.97 -p 32 --S_algorithm fastANI /work_projet/mab_resistance/ANALYSIS/DREP_all_genomes_pa_0.97 --genomes /work_projet/mab_resistance/tables/path_to_all_genomes.txt &amp;&amp; conda deactivate&quot;
+
+# running dRep pa 0.99
+qsub -cwd -V -N drep-all-genomes-099 -pe thread 32 -o /work_projet/mab_resistance/log/ -e /work_projet/mab_resistance/log/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; dRep compare --debug -pa 0.99 -p 32 --S_algorithm fastANI /work_projet/mab_resistance/ANALYSIS/drep_compare_all_genomes_pa_0.99 --genomes /work_projet/mab_resistance/tables/path_to_all_genomes.txt &amp;&amp; conda deactivate&quot;
+</code></pre>
+<pre class="bash"><code>for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt`; do echo /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/${id}.fasta &gt;&gt; /work_projet/mab_resistance/tables/path_mab_hopital.txt ; done
+
+$ cat /work_projet/mab_resistance/tables/path_mab_hopital.txt | wc -l
+81
+
+
+qsub -cwd -V -N checkm-lineage-mab_hopital -pe thread 32 -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; checkm lineage_wf /work_projet/mab_resistance/ /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/DREP_mab_hopital/data/checkM/checkM_outdir/ -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/DREP_mab_hopital/data/checkM/checkM_outdir/results.tsv --tab_table -t 32 --pplacer_threads 32 -g -x faa --tmpdir /work_projet/mab_resistance/tmp/ &amp;&amp; conda deactivate&quot;
+
+qsub -cwd -V -N checkm-qa-mab_hopital -pe thread 32 -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -q long.q -b y &quot;conda activate drep-3.2.0 &amp;&amp; checkm qa /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/DREP_mab_hopital/data/checkM/checkM_outdir/lineage.ms /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/DREP_mab_hopital/data/checkM/checkM_outdir/ -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/DREP_mab_hopital/data/checkM/checkM_outdir/Chdb.tsv -t 32 --tab_table -o 2 --tmpdir /work_projet/mab_resistance/tmp/ &amp;&amp; conda deactivate&quot;
+
+# checkm mab06 et 52
+qsub -cwd -V -N checkm-lineage-mab06 -pe thread 8 -o /work_projet/mab_resistance/log/mab06/ -e /work_projet/mab_resistance/log/mab06/ -b y &quot;conda activate drep-3.2.0 &amp;&amp; checkm lineage_wf /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab06/3-ASSEMBLY/mab06.fasta /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab06/checkm/data/checkM/checkM_outdir/ -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab06/checkm/data/checkM/checkM_outdir/results.tsv --tab_table -t 8 --pplacer_threads 8 -g -x faa --tmpdir /work_projet/mab_resistance/tmp/ &amp;&amp; conda deactivate&quot;
+</code></pre>
 </div>
 </div>
+<div id="extraction-séquences-des-35-gènes-de-la-liste" class="section level2">
+<h2>Extraction séquences des 35 gènes de la liste</h2>
+<pre class="bash"><code># creer liste des id des genes de resistance tels qu'ils apparaissent dans le multifasta
+for id in `cat /work_projet/mab_resistance/tables/liste_genes_resistance.txt` ; do grep ${id} /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_ATCC_19977_genes_v4.fasta | sed 's/^&gt;//' &gt;&gt; /work_projet/mab_resistance/tables/liste_id_resistance.txt ; done
+</code></pre>
+<pre class="python"><code># selection des 35 fasta correspondant à ces gènes
+# script python (SeqIO)
+# BLAST de ce nouveau multifasta pour avoir les id Genbank</code></pre>
+<pre class="bash"><code>qsub -cwd -V -N blast-multifasta-NZ_CP014955 -pe thread 16 -o /work_projet/mab_resistance/log/reference/ -e /work_projet/mab_resistance/log/reference/ -b y &quot;conda activate blast-2.9.0 &amp;&amp; blastn -query /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/attc_resistance.fasta -subject  /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_NZ_CP014955-1_genome.fasta -num_threads 16 -outfmt 6 -out /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/attc_resistance_blast_NZ_CP014955-1.tsv &amp;&amp; conda deactivate&quot;
+
+#sur  multifasta
+qsub -cwd -V -N blast-multifasta-NZ_CP014955 -pe thread 16 -o /work_projet/mab_resistance/log/reference/ -e /work_projet/mab_resistance/log/reference/ -b y &quot;conda activate blast-2.9.0 &amp;&amp; blastn -query /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/attc_resistance.fasta -subject  /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_NZ_CP014955-1_coding_sequences.fasta -num_threads 16 -outfmt 6 -out /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/attc_resistance_blast_NZ_CP014955-1.tsv &amp;&amp; conda deactivate&quot;
+
+
+#sur  multifasta CU458896
+qsub -cwd -V -N blast-multifasta-CU458896 -pe thread 16 -o /work_projet/mab_resistance/log/reference/ -e /work_projet/mab_resistance/log/reference/ -b y &quot;conda activate blast-2.9.0 &amp;&amp; blastn -query /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/genes_resistance_atcc.fasta -subject  /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_atcc_19977_CU458896-1_coding_sequences.fasta -num_threads 16 -outfmt 6 -out /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/attc_resistance_blast_atcc_19977_CU458896-1.tsv &amp;&amp; conda deactivate&quot;
+</code></pre>
+<pre class="r"><code>atcc_blast_refseq &lt;- read.table(&quot;/work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/atcc_resistance_blast_NZ_CP014955-1.tsv&quot;, header = FALSE)
+
+names(atcc_blast_refseq) &lt;- c(&quot;qseqid&quot;, &quot;sseqid&quot;, &quot;pident&quot;, &quot;length&quot;, &quot;mismatch&quot;, &quot;gapopen&quot;, &quot;qstart&quot;, &quot;qend&quot;, &quot;sstart&quot;, &quot;send&quot;, &quot;evalue&quot;, &quot;bitscore&quot;)
+
+atcc_blast_refseq_sort &lt;- atcc_blast_refseq %&gt;%
+  arrange(desc(pident), qseqid)
+
+atcc_blast_refseq_filter &lt;- atcc_blast_refseq %&gt;%
+  filter(pident &gt; 99.5) %&gt;%
+  filter(pident !=  99.907)  # enlever le deuxième  MAB_4099c
+
+write.table(atcc_blast_refseq_filter, file = &quot;/work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/atcc_resistance_blast_NZ_CP014955-1_filter.tsv&quot;, sep = &quot;\t&quot;)</code></pre>
+<pre class="r"><code>atcc_blast_CU458896 &lt;- read.table(&quot;/work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/atcc_resistance_blast_atcc_19977_CU458896-1.tsv&quot;, header = FALSE)
+
+names(atcc_blast_CU458896) &lt;- c(&quot;qseqid&quot;, &quot;sseqid&quot;, &quot;pident&quot;, &quot;length&quot;, &quot;mismatch&quot;, &quot;gapopen&quot;, &quot;qstart&quot;, &quot;qend&quot;, &quot;sstart&quot;, &quot;send&quot;, &quot;evalue&quot;, &quot;bitscore&quot;)
+
+atcc_blast_CU458896_sort &lt;- atcc_blast_CU458896 %&gt;%
+  arrange(desc(pident), qseqid)
+
+atcc_blast_CU458896_filter &lt;- atcc_blast_CU458896 %&gt;%
+  filter(pident &gt; 99.5)%&gt;%
+  filter(length !=  166)  # enlever le deuxième     MAB_4395
+
+write.table(atcc_blast_CU458896_filter, file = &quot;/work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/atcc_resistance_blast_atcc_19977_CU458896-1_filter.tsv&quot;, sep = &quot;\t&quot;)</code></pre>
+<pre class="bash"><code>cd /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/
+[vok@migale genes_resistance]$ sed 's/&quot;//g' atcc_resistance_blast_NZ_CP014955-1_filter.tsv | sed '1d' | cut -f 3 | cut -f 4,5 -d &quot;_&quot; &gt; liste_id_res_NZ_CP014955-1.txt
+[vok@migale genes_resistance]$ cat liste_id_res_NZ_CP014955-1.txt | wc -l
+33
+
+cd /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/
+[vok@migale genes_resistance]$ sed 's/&quot;//g' atcc_resistance_blast_atcc_19977_CU458896-1_filter.tsv | sed '1d' | cut -f 3 | cut -f 3 -d &quot;_&quot; &gt; liste_id_res_CU458896-1.txt
+[vok@migale genes_resistance]$ cat liste_id_res_CU458896-1.txt | wc -l
+33</code></pre>
+<pre class="bash"><code># test avec fichier annotation gb Mycobacterium_abscessus_NZ_CP014955-1 (avec sequence)
+qsub -cwd -V -N prokka-mab01-NZ_CP014955-gb-seq -pe thread 8  -o /work_projet/mab_resistance/log/test/ -e /work_projet/mab_resistance/log/test/ -b y &quot;conda activate prokka-1.14.5 &amp;&amp; prokka --outdir /work_projet/mab_resistance/test/mab01_NZ_CP014955_gb_seq --prefix mab01-test --locustag mab01-test --gcode 11 --proteins /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_NZ_CP014955-1.gb --cpus 8 --rnammer /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/3-ASSEMBLY/mab01.fasta &amp;&amp; conda deactivate&quot;</code></pre>
+</div>
+<div id="annotation" class="section level2">
+<h2>Annotation</h2>
+<p>Prokka sur l’ensemble des génomes</p>
+<pre class="bash"><code># Running Prokka NZ_CP014955_gb
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do 
+qsub -cwd -V -N prokka-${id} -pe thread 8  
+-o /work_projet/mab_resistance/log/${id}/ 
+-e /work_projet/mab_resistance/log/${id}/ 
+-b y &quot;conda activate prokka-1.14.5 &amp;&amp; prokka --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/4-ANNOTATION/prokka_${id}_NZ_CP014955_gb/ --prefix ${id} --locustag ${id} --gcode 11 --proteins /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_NZ_CP014955-1.gb --cpus 8 --rnammer /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/${id}.fasta &amp;&amp; conda deactivate&quot; ; done
+
+
+# Running Prokka CU458896_gb
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do 
+qsub -cwd -V -N prokka-${id}-CU458896 -pe thread 8  
+-o /work_projet/mab_resistance/log/${id}/ 
+-e /work_projet/mab_resistance/log/${id}/ 
+-b y &quot;conda activate prokka-1.14.5 &amp;&amp; prokka --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/4-ANNOTATION/prokka_${id}_CU458896_gb/ --prefix ${id} --locustag ${id} --gcode 11 --proteins /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_atcc_19977_CU458896-1.gb --cpus 8 --rnammer /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/${id}.fasta &amp;&amp; conda deactivate&quot; ; done
+
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do qsub -cwd -V -N prokka-${id}-CU458896 -pe thread 8 -o /work_projet/mab_resistance/log/${id}/ -e /work_projet/mab_resistance/log/${id}/ -b y &quot;conda activate prokka-1.14.5 &amp;&amp; prokka --outdir /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/4-ANNOTATION/prokka_${id}_CU458896_gb/ --prefix ${id} --locustag ${id} --gcode 11 --proteins /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_atcc_19977_CU458896-1.gb --cpus 8 --rnammer /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/3-ASSEMBLY/${id}.fasta &amp;&amp; conda deactivate&quot; ; done
+</code></pre>
+</div>
+</div>
+<div id="pan-génome" class="section level1">
+<h1>Pan-génome</h1>
+<pre class="bash"><code># test
+qsub -cwd -V -N roary-test -pe thread 8  -o /work_projet/mab_resistance/log/test/ -e /work_projet/mab_resistance/log/test/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/4-ANNOTATION/prokka_mab01_CU458896_gb/mab01.gff -f /work_projet/mab_resistance/ANALYSIS/test/roary_mab01_test_NZ_CP014955_gb/ &amp;&amp; conda deactivate&quot;
+
+cd /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/mab01/4-ANNOTATION/prokka_mab01_CU458896_gb/
+qsub -cwd -V -N roary-test -pe thread 8  -o /work_projet/mab_resistance/log/test/ -e /work_projet/mab_resistance/log/test/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 *.gff -f /work_projet/mab_resistance/ANALYSIS/test/roary_mab01_test_CU458896_gb/ &amp;&amp; conda deactivate&quot;
+
+
+
+# Running Roary _NZ_CP014955_gb
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do 
+qsub -cwd -V -N roary-${id}-NZ_CP014955 -pe thread 8  
+-o /work_projet/mab_resistance/log/${id}/ 
+-e /work_projet/mab_resistance/log/${id}/ 
+-b y &quot;conda activate roary-3.12.0 &amp;&amp; roary –e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/4-ANNOTATION/prokka_${id}_NZ_CP014955_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/5-PANGENOME/roary_${id}_NZ_CP014955_gb/ &amp;&amp; conda deactivate&quot; ; done
+
+
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do qsub -cwd -V -N roary-${id}-NZ_CP014955 -pe thread 8  -o /work_projet/mab_resistance/log/${id}/ -e /work_projet/mab_resistance/log/${id}/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/4-ANNOTATION/prokka_${id}_NZ_CP014955_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/5-PANGENOME/roary_${id}_NZ_CP014955_gb/ &amp;&amp; conda deactivate&quot; ; done
+
+# Running Roary CU458896_gb
+for id in `cat /work_projet/mab_resistance/tables/mab_hopital_liste.txt` ; do 
+qsub -cwd -V -N roary-${id}-CU458896 -pe thread 8  
+-o /work_projet/mab_resistance/log/${id}/ 
+-e /work_projet/mab_resistance/log/${id}/ 
+-b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/4-ANNOTATION/prokka_${id}_CU458896_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/${id}/5-PANGENOME/roary_${id}_CU458896_gb/ &amp;&amp; conda deactivate&quot; ; done
+
+qsub -cwd -V -N roary-CU458896 -pe thread 8  -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/4-ANNOTATION/prokka_*_CU458896_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/4-PANGENOME/roary_CU458896/ &amp;&amp; conda deactivate&quot;
+
+# NZ_CP014955
+qsub -cwd -V -N roary-NZ_CP014955 -pe thread 8  -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/4-ANNOTATION/prokka_*_NZ_CP014955_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/4-PANGENOME/roary_NZ_CP014955/ &amp;&amp; conda deactivate&quot;
+</code></pre>
+<pre class="bash"><code># Running Roary NZ_CP014955
+qsub -cwd -V -N roary-NZ_CP014955-clean -pe thread 8  -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/4-ANNOTATION/prokka_*_NZ_CP014955_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/4-PANGENOME/roary_NZ_CP014955_cleaned/ &amp;&amp; conda deactivate&quot;
+
+# Running Roary CU458896_gb
+qsub -cwd -V -N roary-CU458896-clean -pe thread 8  -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/4-ANNOTATION/prokka_*_CU458896_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/global/4-PANGENOME/roary_CU458896_cleaned/ &amp;&amp; conda deactivate&quot;
+</code></pre>
+<pre class="bash"><code>for geneid in `cat /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/liste_id_res_CU458896-1.txt` ; do echo ${geneid} &amp;&amp; grep ${geneid} /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_atcc_19977_CU458896-1.gff3 &gt; /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance_CU458896-1/${geneid}.gff ; done
+    
+for geneid in `cat /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/liste_id_res_NZ_CP014955-1.txt` ; do echo ${geneid} &amp;&amp; grep ${geneid} /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_NZ_CP014955-1.gff3 &gt; /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance_NZ_CP014955-1/${geneid}.gff ; done
+    
+    
+for geneid in `cat /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/liste_id_res_CU458896-1.txt` ; do qsub -cwd -V -N getfasta-CU458896-${geneid} -q short.q -pe thread 4 -o /work_projet/mab_resistance/log/reference/ -e /work_projet/mab_resistance/log/reference/ -b y &quot;conda activate bedtools-2.29.0 &amp;&amp; bedtools getfasta -fi /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_atcc_19977_CU458896-1_genome.fasta -bed /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance_CU458896-1/${geneid}.gff -fo /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance_CU458896-1/${geneid}.fasta  &amp;&amp; conda deactivate&quot; ; done  
+
+
+for geneid in `cat /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance/liste_id_res_NZ_CP014955-1.txt` ; do qsub -cwd -V -N getfasta-NZ_CP014955-${geneid} -q short.q -pe thread 4 -o /work_projet/mab_resistance/log/reference/ -e /work_projet/mab_resistance/log/reference/ -b y &quot;conda activate bedtools-2.29.0 &amp;&amp; bedtools getfasta -fi /work_projet/mab_resistance/DATA/REFERENCE/Mycobacterium_abscessus_NZ_CP014955-1_genome.fasta -bed /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance_NZ_CP014955-1/${geneid}.gff -fo /work_projet/mab_resistance/ANALYSIS/REFERENCE/genes_resistance_NZ_CP014955-1/${geneid}.fasta  &amp;&amp; conda deactivate&quot; ; done
+</code></pre>
+<ul>
+<li>Téléchargement des genbank des winner genomes</li>
+</ul>
+<pre class="bash"><code># liste des winner genomes
+ls /work_projet/mab_resistance/ANALYSIS/GENOMES_NCBI/DREP_genomes_ncbi/dereplicated_genomes/ | sed 's/_genomic.fna//g' &gt; /work_projet/mab_resistance/tables/ncbi_winner_genomes.txt
+
+# soumission du script pour telecharger les gff
+qsub -cwd -V -N ncbi_winner_genomes_gff -o /work_projet/mab_resistance/log/genomes_ncbi -e /work_projet/mab_resistance/log/genomes_ncbi /save_projet/mab_resistance/projet_tutore/scripts/ncbi_winner_genomes_gff.sh
+
+
+# soumission du script pour telecharger les gbff
+qsub -cwd -V -N ncbi_winner_genomes_gbff -o /work_projet/mab_resistance/log/genomes_ncbi -e /work_projet/mab_resistance/log/genomes_ncbi /save_projet/mab_resistance/projet_tutore/scripts/ncbi_winner_genomes_gbff.sh
+
+# création répertoire pour les gff prets pour roary
+mkdir /work_projet/mab_resistance/ANALYSIS/pangenome
+mkdir /work_projet/mab_resistance/ANALYSIS/pangenome/gff_NZ_CP014955_gb
+mkdir /work_projet/mab_resistance/ANALYSIS/pangenome/gff_CU458896_gb
+mkdir /work_projet/mab_resistance/ANALYSIS/pangenome/gff_ncbi
+mkdir /work_projet/mab_resistance/ANALYSIS/pangenome/gff_ref
+
+# transformer les .gbff en gff3 avec bp_genbank2gff3.pl
+qsub -cwd -V -N bp_genbank2gff3 -o /work_projet/mab_resistance/log/genomes_ncbi -e /work_projet/mab_resistance/log/genomes_ncbi 
+
+bp_genbank2gff3.pl /work_projet/mab_resistance/DATA/GENOMES_NCBI/gbff/*gbff.gz --outdir /work_projet/mab_resistance/ANALYSIS/pangenome/gff_ncbi/ 1&gt;/work_projet/mab_resistance/log/genomes_ncbi/bp_genbank2gff3_o.log 2&gt;/work_projet/mab_resistance/log/genomes_ncbi/bp_genbank2gff3_e.log
+
+bp_genbank2gff3.pl /work_projet/mab_resistance/DATA/REFERENCE/*.gb --outdir /work_projet/mab_resistance/ANALYSIS/pangenome/gff_ref/ 1&gt;/work_projet/mab_resistance/log/genomes_ncbi/bp_genbank2gff3_ref_o.log 2&gt;/work_projet/mab_resistance/log/genomes_ncbi/bp_genbank2gff3_ref_e.log
+
+# copie des gff
+#cp /work_projet/mab_resistance/ANALYSIS/pangenome/gff_NZ_CP014955_gb/*.gff3 /work_projet/mab_resistance/ANALYSIS/pangenome/gff_CU458896_gb/
+
+cp /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/4-ANNOTATION/prokka_*_NZ_CP014955_gb/*.gff /work_projet/mab_resistance/ANALYSIS/pangenome/gff_NZ_CP014955_gb/
+
+cp /work_projet/mab_resistance/ANALYSIS/MAB_HOPITAL/*/4-ANNOTATION/prokka_*_CU458896_gb/*.gff /work_projet/mab_resistance/ANALYSIS/pangenome/gff_CU458896_gb/
+</code></pre>
+<ul>
+<li>Roary sans les mab06, 52 et 58</li>
+</ul>
+<pre class="bash"><code># Running Roary NZ_CP014955
+qsub -cwd -V -N roary-NZ_CP014955 -pe thread 8  -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/pangenome/gff_NZ_CP014955_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/pangenome/roary_NZ_CP014955_mab_hopital_cleaned/ &amp;&amp; conda deactivate&quot;
+
+# Running Roary CU458896_gb
+qsub -cwd -V -N roary-CU458896 -pe thread 8  -o /work_projet/mab_resistance/log/global/ -e /work_projet/mab_resistance/log/global/ -b y &quot;conda activate roary-3.12.0 &amp;&amp; roary -e --mafft -p 8 /work_projet/mab_resistance/ANALYSIS/pangenome/gff_CU458896_gb/*.gff -f /work_projet/mab_resistance/ANALYSIS/pangenome/roary_CU458896_mab_hopital_cleaned/ &amp;&amp; conda deactivate&quot;
+</code></pre>
 </div>
 
 
